@@ -16,6 +16,11 @@ class Client
 	static private $resource;
 	static private $path_prefix = '/api/v2';
 
+	static private $oauth_base_url = 'https://api.bigcommerceapp.com/';
+	static private $oauth_path_prefix = '/v2';
+	static private $client_id;
+	static private $token;
+
 	/**
 	 * Full URL path to the configured store API.
 	 *
@@ -36,22 +41,37 @@ class Client
 	 */
 	public static function configure($settings)
 	{
-		if (!isset($settings['store_url'])) {
-			throw new Exception("'store_url' must be provided");
+		if (isset($settings['store_context'])) {
+			if (!isset($settings['client_id'])) {
+				throw new Exception("'client_id' must be provided");
+			}
+
+			if (!isset($settings['token'])) {
+				throw new Exception("'token' must be provided");
+			}
+
+			self::$api_path = self::$oauth_base_url.rtrim($settings['store_context'], '/').self::$oauth_path_prefix;
+			self::$client_id = $settings['client_id'];
+			self::$token = $settings['token'];
+		} else {
+			if (!isset($settings['store_url'])) {
+				throw new Exception("'store_url' must be provided");
+			}
+
+			if (!isset($settings['username'])) {
+				throw new Exception("'username' must be provided");
+			}
+
+			if (!isset($settings['api_key'])) {
+				throw new Exception("'api_key' must be provided");
+			}
+
+			self::$username  = $settings['username'];
+			self::$api_key 	 = $settings['api_key'];
+			self::$store_url = rtrim($settings['store_url'], '/');
+			self::$api_path  = self::$store_url . self::$path_prefix;
 		}
 
-		if (!isset($settings['username'])) {
-			throw new Exception("'username' must be provided");
-		}
-
-		if (!isset($settings['api_key'])) {
-			throw new Exception("'api_key' must be provided");
-		}
-
-		self::$username  = $settings['username'];
-		self::$api_key 	 = $settings['api_key'];
-		self::$store_url = rtrim($settings['store_url'], '/');
-		self::$api_path  = self::$store_url . self::$path_prefix;
 		self::$connection = false;
 	}
 
@@ -71,6 +91,14 @@ class Client
 	public static function useXml()
 	{
 		self::connection()->useXml();
+	}
+
+	/**
+	 * Return raw JSON strings from the API instead of building objects.
+	 */
+	public static function returnRaw($option=true)
+	{
+		self::connection()->returnRaw($option);
 	}
 
 	/**
@@ -121,7 +149,13 @@ class Client
 	{
 		if (!self::$connection) {
 		 	self::$connection = new Connection();
-			self::$connection->authenticate(self::$username, self::$api_key);
+
+			if (!empty(self::$token)) {
+				self::$connection->addHeader('X-Auth-Token', self::$token);
+				self::$connection->addHeader('X-Auth-Client', self::$client_id);
+			} else {
+				self::$connection->authenticate(self::$username, self::$api_key);
+			}
 		}
 
 		return self::$connection;

@@ -76,6 +76,12 @@ class Connection
 	private $useXml = false;
 
 	/**
+	 * Determines whether responses should be returned as a raw JSON string.
+	 * Defaults to false (returns object).
+	 */
+	private $returnRaw = false;
+
+	/**
 	 * Initializes the connection object.
 	 */
 	public function __construct()
@@ -100,6 +106,14 @@ class Connection
 	 */
 	public function useXml($option=true) {
 		$this->useXml = $option;
+	}
+
+	/**
+	 * Controls whether responses should be returned as a raw JSON string.
+	 * Defaults to false (returns object).
+	 */
+	public function returnRaw($option=true) {
+		$this->returnRaw = $option;
 	}
 
 	/**
@@ -212,7 +226,7 @@ class Connection
 			throw new NetworkError(curl_error($this->curl), curl_errno($this->curl));
 		}
 
-		$body = ($this->useXml) ? $this->getBody() : json_decode($this->getBody());
+		$body = ($this->useXml || $this->returnRaw) ? $this->getBody() : json_decode($this->getBody());
 
 		$status = $this->getStatus();
 
