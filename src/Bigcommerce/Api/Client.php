@@ -927,6 +927,19 @@ class Client
 		return intval($limit);
 	}
 
+    /**
+     * The amount of time to wait after getting a 429 status code.
+     *
+     * @return int
+     */
+    public static function getRetryAfter()
+    {
+        $limit = self::connection()->getHeader('X-Retry-After');
 
+        if (!$limit) {
+            $limit = 0;
+        }
 
+        return intval($limit);
+    }
 }
