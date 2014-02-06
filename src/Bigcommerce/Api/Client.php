@@ -16,7 +16,7 @@ class Client
 	static private $resource;
 	static private $path_prefix = '/api/v2';
 
-	static private $oauth_base_url = 'https://api.bigcommerceapp.com/';
+	static private $oauth_base_url = 'https://api.bigcommerce.com/';
 	static private $oauth_path_prefix = '/v2';
 	static private $client_id;
 	static private $token;
